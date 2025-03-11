@@ -118,23 +118,34 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     }
 
+    // CSVがKoinlyのトランザクションデータかどうかの判定はutils.jsに移動しました
+
     // CSVデータの解析（基本的な実装、後で詳細なロジックに置き換え）
     function parseCSV(csv) {
         // CSVヘッダーとデータ行に分割
         const lines = csv.split('\n');
         const headers = lines[0].split(',').map(header => header.trim());
         
-        // 必要なヘッダーのインデックスを取得
-        const dateIndex = headers.indexOf('Date');
-        const typeIndex = headers.indexOf('Type');
-        const fromIndex = headers.indexOf('From');
-        const toIndex = headers.indexOf('To');
-        const amountIndex = headers.indexOf('Amount');
-        const currencyIndex = headers.indexOf('Currency');
+        // KoinlyのCSVかどうかを判定（utils.jsの関数を使用）
+        if (!window.utils.isKoinlyCSV(headers)) {
+            fileInfo.textContent = 'エラー: Koinlyのトランザクションデータではありません。';
+            return;
+        }
         
-        // ヘッダーが見つからない場合はエラー
-        if (dateIndex === -1 || typeIndex === -1 || fromIndex === -1 || 
-            toIndex === -1 || amountIndex === -1 || currencyIndex === -1) {
+        // 必要なヘッダーのインデックスを取得
+        const dateIndex = headers.indexOf('Date (UTC)');
+        const typeIndex = headers.indexOf('Type');
+        const fromAmountIndex = headers.indexOf('From Amount');
+        const fromCurrencyIndex = headers.indexOf('From Currency');
+        const toAmountIndex = headers.indexOf('To Amount');
+        const toCurrencyIndex = headers.indexOf('To Currency');
+        const fromWalletIndex = headers.indexOf('From Wallet (read-only)');
+        const toWalletIndex = headers.indexOf('To Wallet (read-only)');
+        
+        // ヘッダーが見つからない場合はエラー（念のため確認）
+        if (dateIndex === -1 || typeIndex === -1 ||
+            fromAmountIndex === -1 || fromCurrencyIndex === -1 ||
+            toAmountIndex === -1 || toCurrencyIndex === -1) {
             fileInfo.textContent = 'エラー: CSVファイルの形式が正しくありません。';
             return;
         }
@@ -147,15 +158,22 @@ document.addEventListener('DOMContentLoaded', () => {
             // カンマで分割（引用符内のカンマを考慮）
             const values = lines[i].split(',').map(value => value.trim());
             
-            if (values.length >= headers.length) {
+            if (values.length >= Math.min(fromWalletIndex, toWalletIndex) + 1) {
                 const transaction = {
                     date: values[dateIndex],
                     type: values[typeIndex],
-                    from: values[fromIndex],
-                    to: values[toIndex],
-                    amount: values[amountIndex],
-                    currency: values[currencyIndex]
+                    from: values[fromWalletIndex] || '',
+                    to: values[toWalletIndex] || '',
+                    fromAmount: values[fromAmountIndex] || '0',
+                    fromCurrency: values[fromCurrencyIndex] || '',
+                    toAmount: values[toAmountIndex] || '0',
+                    toCurrency: values[toCurrencyIndex] || ''
                 };
+                
+                // 通貨情報を設定（表示用）
+                // fromCurrencyが存在する場合はそれを使用、なければtoCurrencyを使用
+                transaction.currency = transaction.fromCurrency || transaction.toCurrency;
+                
                 parsedTransactions.push(transaction);
             }
         }
@@ -211,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // シーケンス図の生成
     function generateSequenceDiagram() {
         // 選択された通貨でトランザクションをフィルタリング
-        const filteredTransactions = parsedTransactions.filter(transaction => 
+        const filteredTransactions = parsedTransactions.filter(transaction =>
             selectedCurrencies.has(transaction.currency)
         );
         
@@ -237,9 +255,33 @@ document.addEventListener('DOMContentLoaded', () => {
         // トランザクションをシーケンスに変換
         filteredTransactions.forEach(transaction => {
             if (transaction.from && transaction.to) {
-                const amount = parseFloat(transaction.amount);
+                // トランザクションタイプに応じて適切な金額と通貨を選択
+                let amount, currency;
+                
+                switch (transaction.type.toLowerCase()) {
+                    case 'deposit':
+                        amount = parseFloat(transaction.toAmount);
+                        currency = transaction.toCurrency;
+                        break;
+                    case 'withdrawal':
+                        amount = parseFloat(transaction.fromAmount);
+                        currency = transaction.fromCurrency;
+                        break;
+                    case 'trade':
+                        amount = parseFloat(transaction.toAmount);
+                        currency = transaction.toCurrency;
+                        break;
+                    case 'transfer':
+                        amount = parseFloat(transaction.fromAmount);
+                        currency = transaction.fromCurrency;
+                        break;
+                    default:
+                        amount = parseFloat(transaction.fromAmount) || parseFloat(transaction.toAmount);
+                        currency = transaction.currency;
+                }
+                
                 const sign = amount >= 0 ? '+' : '';
-                mermaidCode += `    ${transaction.from}->>+${transaction.to}: ${sign}${amount} ${transaction.currency} (${transaction.type})\n`;
+                mermaidCode += `    ${transaction.from}->>+${transaction.to}: ${sign}${amount} ${currency} (${transaction.type})\n`;
             }
         });
         
