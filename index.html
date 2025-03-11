@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koinly Transactions to Sequence Diagram</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Koinly Transactions to Sequence Diagram</h1>
+        </header>
+        
+        <div class="stepper">
+            <div class="step active" id="step1">
+                <div class="step-number">1</div>
+                <div class="step-title">CSVアップロード</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-number">2</div>
+                <div class="step-title">フィルター設定</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-number">3</div>
+                <div class="step-title">シーケンス図</div>
+            </div>
+        </div>
+        
+        <main>
+            <!-- Step 1: CSV Upload -->
+            <section class="step-content active" id="step1-content">
+                <div class="upload-container" id="drop-area">
+                    <div class="upload-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    </div>
+                    <h3>CSVファイルをドラッグ＆ドロップ</h3>
+                    <p>または</p>
+                    <label for="file-input" class="file-input-label">ファイルを選択</label>
+                    <input type="file" id="file-input" accept=".csv" hidden>
+                    <p class="file-info" id="file-info"></p>
+                </div>
+            </section>
+            
+            <!-- Step 2: Filter Settings -->
+            <section class="step-content" id="step2-content">
+                <div class="filter-container">
+                    <h3>通貨フィルター設定</h3>
+                    <div class="currency-filter" id="currency-filter">
+                        <!-- 通貨チェックボックスがここに動的に生成されます -->
+                        <p class="loading">CSVファイルを解析中...</p>
+                    </div>
+                    <div class="actions">
+                        <button id="back-to-step1" class="secondary-button">戻る</button>
+                        <button id="generate-diagram" class="primary-button">シーケンス図を生成</button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Step 3: Sequence Diagram -->
+            <section class="step-content" id="step3-content">
+                <div class="diagram-container">
+                    <h3>生成されたシーケンス図</h3>
+                    <div class="diagram-preview" id="diagram-preview">
+                        <!-- ここにシーケンス図が表示されます -->
+                    </div>
+                    <div class="actions">
+                        <button id="back-to-step2" class="secondary-button">戻る</button>
+                        <button id="download-diagram" class="primary-button">SVGをダウンロード</button>
+                        <button id="open-mermaid-live" class="primary-button">Mermaid Liveで開く</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 Koinly Transactions to Sequence Diagram</p>
+        </footer>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

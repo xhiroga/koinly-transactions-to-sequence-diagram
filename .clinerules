@@ -1,0 +1,20 @@
+## Code Quality Rules
+
+1. Test Coverage:
+   - Before attempting completion, always make sure that any code changes have test coverage
+   - Ensure all tests pass before submitting changes
+
+2. Lint Rules:
+   - Never disable any lint rules without explicit user approval
+
+3. Thinking Language
+   - 日本語で考えてください
+   - コードは英語で書いてください
+
+4. Code Comments
+   - コードのコメントは基本的に不要です
+   - 当初の設計から修正する場合に、どうしてその修正に至ったかをコメントしてください
+
+## Adding a New Setting
+
+To add a new setting that persists its state, follow the steps in cline_docs/settings.md
