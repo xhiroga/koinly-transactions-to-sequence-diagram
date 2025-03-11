@@ -8,8 +8,6 @@ describe('isKoinlyCSV関数のテスト', () => {
     // 正常系: Koinlyのトランザクションデータの場合
     test('Koinlyのトランザクションデータの場合はtrueを返す', () => {
         const headers = [
-            'ID',
-            'Parent ID',
             'Date (UTC)',
             'Type',
             'Tag',
@@ -34,8 +32,6 @@ describe('isKoinlyCSV関数のテスト', () => {
     // 異常系: 必須ヘッダーが不足している場合
     test('必須ヘッダーが不足している場合はfalseを返す', () => {
         const headers = [
-            'ID',
-            'Parent ID',
             'Date', // Date (UTC)ではない
             'Type',
             'From Amount',
@@ -52,7 +48,6 @@ describe('isKoinlyCSV関数のテスト', () => {
     // 異常系: オプションのヘッダーが存在しない場合
     test('オプションのヘッダーが存在しない場合はfalseを返す', () => {
         const headers = [
-            'ID',
             'Date (UTC)',
             'Type',
             'From Amount',

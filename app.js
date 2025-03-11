@@ -118,8 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     }
 
-    // CSVがKoinlyのトランザクションデータかどうかの判定はutils.jsに移動しました
-
     // CSVデータの解析（基本的な実装、後で詳細なロジックに置き換え）
     function parseCSV(csv) {
         // CSVヘッダーとデータ行に分割

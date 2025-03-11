@@ -4,7 +4,6 @@
 function isKoinlyCSV(headers) {
     // Koinlyのトランザクションデータに特有の必須ヘッダー
     const requiredHeaders = [
-        'ID',
         'Date (UTC)',
         'Type',
         'From Amount',
