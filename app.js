@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadDiagramBtn = document.getElementById('download-diagram');
     const openMermaidLiveBtn = document.getElementById('open-mermaid-live');
     const diagramPreview = document.getElementById('diagram-preview');
+    const noOffsetOption = document.getElementById('no-offset-option');
+    const showNotesOption = document.getElementById('show-notes-option');
 
     // グローバル変数
     let csvData = null;
@@ -236,52 +238,33 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // シーケンス図のMermaid構文を生成（基本的な実装、後で詳細なロジックに置き換え）
-        let mermaidCode = 'sequenceDiagram\n';
-        
-        // 参加者（ユニークなfromとto）を追加
-        const participants = new Set();
-        filteredTransactions.forEach(transaction => {
-            if (transaction.from) participants.add(transaction.from);
-            if (transaction.to) participants.add(transaction.to);
+        // シーケンス図生成のための前処理
+        const transactions = filteredTransactions.map(transaction => {
+            // utils.js で使用するフォーマットに変換
+            return {
+                'Years (Date (UTC))': new Date(transaction.date).getFullYear(),
+                'From Wallet (read-only)': transaction.from,
+                'To Wallet (read-only)': transaction.to,
+                'From Currency': transaction.fromCurrency,
+                'To Currency': transaction.toCurrency,
+                'Sum of From Amount': parseFloat(transaction.fromAmount) || 0,
+                'Sum of To Amount': parseFloat(transaction.toAmount) || 0
+            };
         });
         
-        participants.forEach(participant => {
-            mermaidCode += `    participant ${participant}\n`;
-        });
+        // UIのオプション設定を読み取る
+        const options = {
+            no_offset: noOffsetOption.checked,  // 逆取引の相殺を行わない
+            show_notes: showNotesOption.checked // 残高変動ノートを表示
+        };
         
-        // トランザクションをシーケンスに変換
-        filteredTransactions.forEach(transaction => {
-            if (transaction.from && transaction.to) {
-                // トランザクションタイプに応じて適切な金額と通貨を選択
-                let amount, currency;
-                
-                switch (transaction.type.toLowerCase()) {
-                    case 'deposit':
-                        amount = parseFloat(transaction.toAmount);
-                        currency = transaction.toCurrency;
-                        break;
-                    case 'withdrawal':
-                        amount = parseFloat(transaction.fromAmount);
-                        currency = transaction.fromCurrency;
-                        break;
-                    case 'trade':
-                        amount = parseFloat(transaction.toAmount);
-                        currency = transaction.toCurrency;
-                        break;
-                    case 'transfer':
-                        amount = parseFloat(transaction.fromAmount);
-                        currency = transaction.fromCurrency;
-                        break;
-                    default:
-                        amount = parseFloat(transaction.fromAmount) || parseFloat(transaction.toAmount);
-                        currency = transaction.currency;
-                }
-                
-                const sign = amount >= 0 ? '+' : '';
-                mermaidCode += `    ${transaction.from}->>+${transaction.to}: ${sign}${amount} ${currency} (${transaction.type})\n`;
-            }
-        });
+        // utils.jsの関数を使用してシーケンス図を生成
+        const mermaidCode = window.utils.generateSequenceDiagram(
+            transactions,
+            options.no_offset,
+            options.show_notes
+        );
+        console.log({ mermaidCode });
         
         // 生成されたコードを保存
         generatedDiagram = mermaidCode;

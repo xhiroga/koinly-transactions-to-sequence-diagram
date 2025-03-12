@@ -56,6 +56,22 @@
                         <!-- 通貨チェックボックスがここに動的に生成されます -->
                         <p class="loading">CSVファイルを解析中...</p>
                     </div>
+                    
+                    <h3>表示オプション</h3>
+                    <div class="display-options">
+                        <label class="option-checkbox">
+                            <input type="checkbox" id="no-offset-option">
+                            逆取引の相殺を無効にする
+                            <span class="tooltip">有効にすると、逆方向の取引（例：BTC→JPYとJPY→BTC）を相殺せずにすべて表示します</span>
+                        </label>
+                        
+                        <label class="option-checkbox">
+                            <input type="checkbox" id="show-notes-option">
+                            年ごとの残高変動を表示
+                            <span class="tooltip">有効にすると、各年の通貨残高変動をノートとして表示します</span>
+                        </label>
+                    </div>
+                    
                     <div class="actions">
                         <button id="back-to-step1" class="secondary-button">戻る</button>
                         <button id="generate-diagram" class="primary-button">シーケンス図を生成</button>
