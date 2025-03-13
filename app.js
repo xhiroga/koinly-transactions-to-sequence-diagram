@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadDiagramBtn = document.getElementById('download-diagram');
     const openMermaidLiveBtn = document.getElementById('open-mermaid-live');
     const diagramPreview = document.getElementById('diagram-preview');
-    const noOffsetOption = document.getElementById('no-offset-option');
+    const offsetOption = document.getElementById('offset-option');
+    const aggregateOption = document.getElementById('aggregate-option');
     const showNotesOption = document.getElementById('show-notes-option');
 
     // グローバル変数
@@ -142,14 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const fromWalletIndex = headers.indexOf('From Wallet (read-only)');
         const toWalletIndex = headers.indexOf('To Wallet (read-only)');
         
-        // ヘッダーが見つからない場合はエラー（念のため確認）
-        if (dateIndex === -1 || typeIndex === -1 ||
-            fromAmountIndex === -1 || fromCurrencyIndex === -1 ||
-            toAmountIndex === -1 || toCurrencyIndex === -1) {
-            fileInfo.textContent = 'エラー: CSVファイルの形式が正しくありません。';
-            return;
-        }
-        
         // データ行を解析
         parsedTransactions = [];
         for (let i = 1; i < lines.length; i++) {
@@ -177,6 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 parsedTransactions.push(transaction);
             }
         }
+
+        console.log({ parsedTransactions });
         
         // 通貨フィルターの生成
         generateCurrencyFilter();
@@ -254,15 +249,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // UIのオプション設定を読み取る
         const options = {
-            no_offset: noOffsetOption.checked,  // 逆取引の相殺を行わない
-            show_notes: showNotesOption.checked // 残高変動ノートを表示
+            offset: offsetOption.checked,      // 逆取引の相殺を行う
+            aggregate: aggregateOption.checked, // 同じ通貨ペア間の取引をまとめる
+            showNotes: showNotesOption.checked  // 残高変動ノートを表示
         };
         
         // utils.jsの関数を使用してシーケンス図を生成
         const mermaidCode = window.utils.generateSequenceDiagram(
             transactions,
-            options.no_offset,
-            options.show_notes
+            options
         );
         console.log({ mermaidCode });
         

@@ -80,6 +80,41 @@ describe('シーケンス図生成の結合テスト', () => {
     // 取引所間の移動や通貨変換
     expect(diagram).toMatch(/[A-Z]+ \([^)]+\)>>[A-Z]+ \([^)]+\): [\d,.]+[A-Z]+ -> [\d,.]+[A-Z]+/);
   });
+  test('取引集約機能が正しく動作する', () => {
+    // 集約テスト用のトランザクションデータ
+    const testTransactions = [
+      {
+        'Years (Date (UTC))': 2021,
+        'From Wallet (read-only)': 'Binance;binance',
+        'To Wallet (read-only)': 'Kraken;kraken_connect',
+        'From Currency': 'BTC;1',
+        'To Currency': 'JPY;13',
+        'Sum of From Amount': 0.1,
+        'Sum of To Amount': 500000
+      },
+      {
+        'Years (Date (UTC))': 2021,
+        'From Wallet (read-only)': 'Binance;binance',
+        'To Wallet (read-only)': 'Kraken;kraken_connect',
+        'From Currency': 'BTC;1',
+        'To Currency': 'JPY;13',
+        'Sum of From Amount': 0.2,
+        'Sum of To Amount': 1000000
+      }
+    ];
+    
+    const { aggregateTransactions } = require('../utils.js');
+    const result = aggregateTransactions(testTransactions);
+    
+    // 取引が1つにまとめられていることを確認
+    expect(result.length).toBe(1);
+    expect(result[0]['Sum of From Amount']).toBe(0.3);
+    expect(result[0]['Sum of To Amount']).toBe(1500000);
+    
+    // シーケンス図に正しく反映されることを確認
+    const diagram = generateSequenceDiagram(testTransactions);
+    expect(diagram).toContain('BTC (Binance)>>JPY (Kraken): 0.3BTC -> 1,500,000JPY');
+  });
   
   test('逆取引の相殺機能が正しく動作する', () => {
     // 相殺テスト用のトランザクションデータ

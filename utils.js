@@ -191,6 +191,71 @@ function isReverseTransaction(row1, row2) {
 }
 
 /**
+ * 年内の同じ通貨ペア・取引所間の取引を集約する関数
+ */
+function aggregateTransactions(transactions) {
+    // 年ごとにグループ化
+    const yearGroups = {};
+    transactions.forEach(row => {
+        const year = row["Years (Date (UTC))"];
+        if (!yearGroups[year]) {
+            yearGroups[year] = [];
+        }
+        yearGroups[year].push({...row});
+    });
+    
+    const resultRows = [];
+    
+    // 各年内で同じ通貨ペア・取引所間の取引を集約
+    Object.keys(yearGroups).forEach(year => {
+        const yearGroup = yearGroups[year];
+        const transactionGroups = {};
+        
+        // 各取引をキーでグループ化
+        yearGroup.forEach(row => {
+            // キーの生成: from通貨+取引所_to通貨+取引所
+            const fromKey = `${row["From Currency"]}_${row["From Wallet (read-only)"]}`;
+            const toKey = `${row["To Currency"]}_${row["To Wallet (read-only)"]}`;
+            const directionKey = `${fromKey}__${toKey}`;
+            
+            if (!transactionGroups[directionKey]) {
+                transactionGroups[directionKey] = [];
+            }
+            transactionGroups[directionKey].push(row);
+        });
+        
+        // 各グループの取引を集約
+        Object.keys(transactionGroups).forEach(key => {
+            const group = transactionGroups[key];
+            
+            if (group.length === 1) {
+                // 単一の取引はそのまま追加
+                resultRows.push(group[0]);
+            } else {
+                // 複数の取引は集約
+                const baseRow = {...group[0]};
+                
+                // 金額を合計
+                let totalFromAmount = 0;
+                let totalToAmount = 0;
+                
+                group.forEach(row => {
+                    totalFromAmount += parseFloat(row["Sum of From Amount"]) || 0;
+                    totalToAmount += parseFloat(row["Sum of To Amount"]) || 0;
+                });
+                
+                baseRow["Sum of From Amount"] = totalFromAmount;
+                baseRow["Sum of To Amount"] = totalToAmount;
+                
+                resultRows.push(baseRow);
+            }
+        });
+    });
+    
+    return resultRows;
+}
+
+/**
  * 年内で逆取引を検出し、相殺して差分を計算する関数
  */
 function offsetTransactions(transactions) {
@@ -459,10 +524,46 @@ function formatYearlyCurrencyTotalNote(firstParticipant, currencyTotals, year) {
 
 /**
  * シーケンス図を生成する関数
+ *
+ * @param {Array} transactions 取引データの配列
+ * @param {Object} options オプション設定
+ * @param {boolean} options.offset 逆取引を相殺するか（デフォルト: true）
+ * @param {boolean} options.aggregate 同じ通貨ペア間の取引を集約するか（デフォルト: true）
+ * @param {boolean} options.showNotes 残高変動ノートを表示するか（デフォルト: false）
+ * @returns {string} Mermaid形式のシーケンス図
  */
-function generateSequenceDiagram(transactions, no_offset = false, show_notes = false) {
-    // 逆取引の相殺処理（no_offsetがtrueの場合はスキップ）
-    const processedTransactions = no_offset ? transactions : offsetTransactions(transactions);
+function generateSequenceDiagram(transactions, options = {}) {
+    // デフォルトオプション
+    const defaultOptions = {
+        offset: true,       // 逆取引を相殺する
+        aggregate: true,    // 同じ通貨ペア間の取引を集約する
+        showNotes: false    // 残高変動ノートを表示しない
+    };
+    
+    // オプションをマージ
+    const mergedOptions = {...defaultOptions, ...options};
+    
+    // 後方互換性のため、古いパラメータ形式もサポート
+    if (arguments.length > 1 && typeof arguments[1] === 'boolean') {
+        // 古い形式: generateSequenceDiagram(transactions, offset, show_notes)
+        mergedOptions.offset = arguments[1];
+        if (arguments.length > 2) {
+            mergedOptions.showNotes = arguments[2];
+        }
+    }
+    
+    // 前処理
+    let processedTransactions = [...transactions];
+    
+    // 取引の集約（オプションが有効な場合）
+    if (mergedOptions.aggregate) {
+        processedTransactions = aggregateTransactions(processedTransactions);
+    }
+    
+    // 逆取引の相殺（オプションが有効な場合）
+    if (mergedOptions.offset) {
+        processedTransactions = offsetTransactions(processedTransactions);
+    }
     
     // 全てのparticipantを収集
     const allParticipants = new Set();
@@ -509,7 +610,7 @@ function generateSequenceDiagram(transactions, no_offset = false, show_notes = f
         });
         
         // showNotesが有効な場合、残高変動のノートを追加
-        if (show_notes) {
+        if (mergedOptions.showNotes) {
             // 通貨ごとの合計変動量をノートとして追加
             if (year in yearlyCurrencyTotals) {
                 const currencyNote = formatYearlyCurrencyTotalNote(

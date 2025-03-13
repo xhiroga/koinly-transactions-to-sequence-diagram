@@ -156,7 +156,7 @@ describe('データ処理関数のテスト', () => {
             'Sum of To Amount': 120000
         };
         
-        expect(processRow(row)).toBe('BTC (Binance)>>JPY (Kraken): 0.1BTC -> 120,000JPY');
+        expect(processRow(row)).toBe('BTC (Binance)->>JPY (Kraken): 0.1BTC -> 120,000JPY');
     });
     
     test('processRow - 出金操作の場合、正しいシーケンス行を生成する', () => {
@@ -169,7 +169,7 @@ describe('データ処理関数のテスト', () => {
             'Sum of To Amount': 0
         };
         
-        expect(processRow(row)).toBe('BTC (Kraken)>>BTC (外部アドレス): 0.3BTCをWithdraw');
+        expect(processRow(row)).toBe('BTC (Kraken)->>BTC (外部アドレス): 0.3BTCをWithdraw');
     });
     
     test('processRow - 入金操作の場合、正しいシーケンス行を生成する', () => {
@@ -182,7 +182,7 @@ describe('データ処理関数のテスト', () => {
             'Sum of To Amount': 1.5
         };
         
-        expect(processRow(row)).toBe('ETH (外部アドレス)>>ETH (Binance): 1.5ETHをDeposit');
+        expect(processRow(row)).toBe('ETH (外部アドレス)->>ETH (Binance): 1.5ETHをDeposit');
     });
     
     // extractParticipants関数のテスト
@@ -383,6 +383,70 @@ describe('残高計算と集計関数のテスト', () => {
         expect(yearlyCurrencyTotals[2021]['ETH']).toBe(10);
         expect(yearlyCurrencyTotals[2022]['BTC']).toBe(-0.5);
         expect(yearlyCurrencyTotals[2022]['JPY']).toBe(2500000);
+    });
+    
+    // 取引集約関数のテスト
+    test('aggregateTransactions - 同じ年内の同じ通貨ペア・取引所間の取引をまとめる', () => {
+        const { aggregateTransactions } = require('../utils.js');
+        
+        const transactions = [
+            {
+                'Years (Date (UTC))': 2021,
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect',
+                'From Currency': 'BTC;1',
+                'To Currency': 'JPY;13',
+                'Sum of From Amount': 0.1,
+                'Sum of To Amount': 500000
+            },
+            {
+                'Years (Date (UTC))': 2021,
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect',
+                'From Currency': 'BTC;1',
+                'To Currency': 'JPY;13',
+                'Sum of From Amount': 0.2,
+                'Sum of To Amount': 1000000
+            },
+            {
+                'Years (Date (UTC))': 2021,
+                'From Wallet (read-only)': 'Kraken;kraken_connect',
+                'To Wallet (read-only)': 'Binance;binance',
+                'From Currency': 'ETH;3',
+                'To Currency': 'JPY;13',
+                'Sum of From Amount': 2,
+                'Sum of To Amount': 400000
+            },
+            {
+                'Years (Date (UTC))': 2022,
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect',
+                'From Currency': 'BTC;1',
+                'To Currency': 'JPY;13',
+                'Sum of From Amount': 0.3,
+                'Sum of To Amount': 1500000
+            }
+        ];
+        
+        const result = aggregateTransactions(transactions);
+        
+        // 結果の検証
+        expect(result.length).toBe(3); // 3つの取引に集約されるはず
+        
+        // 2021年のBinance→KrakenのBTC→JPY取引が1つにまとめられていることを確認
+        const btcJpy2021 = result.find(tx =>
+            tx['Years (Date (UTC))'] === 2021 &&
+            tx['From Currency'] === 'BTC;1' &&
+            tx['To Currency'] === 'JPY;13'
+        );
+        
+        expect(btcJpy2021).toBeDefined();
+        expect(btcJpy2021['Sum of From Amount']).toBe(0.3); // 0.1 + 0.2
+        expect(btcJpy2021['Sum of To Amount']).toBe(1500000); // 500000 + 1000000
+        
+        // 異なる通貨ペアや異なる年の取引はまとめられないことを確認
+        expect(result.some(tx => tx['From Currency'] === 'ETH;3')).toBe(true);
+        expect(result.some(tx => tx['Years (Date (UTC))'] === 2022)).toBe(true);
     });
 });
 
