@@ -614,25 +614,61 @@ function generateSequenceDiagram(transactions, options = {}) {
     sortedParticipants.forEach(participant => {
         diagramLines.push(`    participant ${participant}`);
     });
-
-    // 年ごとにグループ化
-    const yearGroups = {};
+    // 期間ごとにグループ化
+    const periodGroups = {};
     processedTransactions.forEach(row => {
-        const year = row["Years (Date (UTC))"];
-        if (!yearGroups[year]) {
-            yearGroups[year] = [];
+        // 日付情報の取得
+        let dateStr;
+        if (row["Date (UTC)"]) {
+            // 実際の日付がある場合はそれを使用
+            dateStr = row["Date (UTC)"];
+        } else if (row["Years (Date (UTC))"]) {
+            // 年のみの情報がある場合は、その年の1月1日を使用
+            const year = parseInt(row["Years (Date (UTC))"]);
+            dateStr = `${year}-01-01`;
+        } else {
+            // どちらもない場合は現在の日付を使用
+            dateStr = new Date().toISOString().split('T')[0];
         }
-        yearGroups[year].push(row);
+
+        // 期間キーを生成
+        let periodKey;
+        const date = new Date(dateStr);
+
+        switch (mergedOptions.aggregatePeriod) {
+            case 'day':
+                // 日単位: YYYY-MM-DD
+                periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                break;
+            case 'month':
+                // 月単位: YYYY-MM
+                periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                break;
+            case 'year':
+                // 年単位: YYYY
+                periodKey = date.getFullYear().toString();
+                break;
+            default:
+                // まとめない場合は日付をそのまま使用
+                periodKey = dateStr;
+                break;
+        }
+
+        if (!periodGroups[periodKey]) {
+            periodGroups[periodKey] = [];
+        }
+        periodGroups[periodKey].push(row);
     });
 
-    // 年順にソート
-    const sortedYears = Object.keys(yearGroups).sort();
+    // 期間順にソート
+    const sortedPeriods = Object.keys(periodGroups).sort();
 
-    // 各年のトランザクションを処理
-    sortedYears.forEach(year => {
-        diagramLines.push(`    Note right of ${sortedParticipants[0]}: ${year}`);
+    // 各期間のトランザクションを処理
+    sortedPeriods.forEach(period => {
+        // 期間に応じたラベルを表示
+        diagramLines.push(`    Note right of ${sortedParticipants[0]}: ${period}`);
 
-        yearGroups[year].forEach(row => {
+        periodGroups[period].forEach(row => {
             const line = processRow(row);
             diagramLines.push(`    ${line}`);
         });
