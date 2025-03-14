@@ -196,7 +196,27 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        currencies.forEach(currency => {
+        // 通貨を番号順にソートするための配列を作成
+        const currencyArray = Array.from(currencies).map(currency => {
+            // 通貨コードと番号を分離（例: "BTC;1" -> {code: "BTC", number: 1}）
+            const parts = currency.split(';');
+            const code = parts[0];
+            // 番号部分が存在する場合は数値に変換、存在しない場合は無限大（最後に表示）
+            const number = parts.length > 1 ? parseInt(parts[1], 10) : Infinity;
+
+            return {
+                original: currency,
+                code: code,
+                number: isNaN(number) ? Infinity : number
+            };
+        });
+
+        // 番号順にソート
+        currencyArray.sort((a, b) => a.number - b.number);
+
+        // ソートされた通貨でフィルターを生成
+        currencyArray.forEach(currencyObj => {
+            const currency = currencyObj.original;
             const checkbox = document.createElement('label');
             checkbox.className = 'currency-checkbox';
 

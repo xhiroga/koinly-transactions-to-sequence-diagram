@@ -65,16 +65,16 @@
                         <div class="option-group">
                             <label for="aggregate-period">取引をまとめる期間：</label>
                             <select id="aggregate-period">
-                                <option value="none">まとめない</option>
+                                <option value="none" selected>まとめない</option>
                                 <option value="day">日</option>
                                 <option value="month">月</option>
-                                <option value="year" selected>年</option>
+                                <option value="year">年</option>
                             </select>
                             <span class="tooltip">選択した期間内の同じ通貨ペア間・取引所間の取引がまとめられます</span>
                         </div>
 
                         <label class="option-checkbox">
-                            <input type="checkbox" id="offset-option" checked>
+                            <input type="checkbox" id="offset-option" disabled>
                             まとめた期間内の逆取引を相殺する
                             <span class="tooltip">有効にすると、同一取引所ペア間の逆方向の取引（例：BTC→JPYとJPY→BTC）を相殺して差分のみ表示します</span>
                         </label>
