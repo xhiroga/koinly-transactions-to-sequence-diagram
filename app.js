@@ -301,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const transactions = filteredTransactions.map(transaction => {
             // utils.js で使用するフォーマットに変換
             return {
+                'Date (UTC)': transaction.date, // 完全な日付情報を渡す
                 'Years (Date (UTC))': new Date(transaction.date).getFullYear(),
                 'From Wallet (read-only)': transaction.from,
                 'To Wallet (read-only)': transaction.to,

@@ -640,10 +640,36 @@ function generateSequenceDiagram(transactions, options = {}) {
     // 期間順にソート
     const sortedPeriods = Object.keys(periodGroups).sort();
 
+    // 期間キーから表示用ラベルを生成する関数
+    function formatPeriodLabel(periodKey, periodType) {
+        // 期間キーが日付形式でない場合はそのまま返す
+        if (!/^\d{4}(-\d{2}){0,2}$/.test(periodKey)) {
+            return periodKey;
+        }
+
+        const parts = periodKey.split('-');
+        const year = parts[0];
+        const month = parts.length > 1 ? parts[1] : '01';
+        const day = parts.length > 2 ? parts[2] : '01';
+
+        // 期間タイプに応じたフォーマット
+        switch (periodType) {
+            case 'day':
+                return `${year}-${month}-${day}`;
+            case 'month':
+                return `${year}-${parseInt(month, 10)}`;
+            case 'year':
+                return year;
+            default:
+                return periodKey;
+        }
+    }
+
     // 各期間のトランザクションを処理
     sortedPeriods.forEach(period => {
         // 期間に応じたラベルを表示
-        diagramLines.push(`    Note right of ${sortedParticipants[0]}: ${period}`);
+        const periodLabel = formatPeriodLabel(period, mergedOptions.aggregatePeriod);
+        diagramLines.push(`    Note right of ${sortedParticipants[0]}: ${periodLabel}`);
 
         periodGroups[period].forEach(row => {
             const line = processRow(row);
