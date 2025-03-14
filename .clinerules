@@ -19,6 +19,6 @@
    - 大きな変更を伴う修正は、事前にその方針を合意する（まだコードは書かない）
    - 実装を始める前に戦略を提示し、ユーザーの承認を得てから作業を進める
 
-## Adding a New Setting
+## Tools
 
-To add a new setting that persists its state, follow the steps in cline_docs/settings.md
+- npmではなくpnpmを使っています
