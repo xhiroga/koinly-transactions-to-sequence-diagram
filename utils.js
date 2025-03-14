@@ -652,6 +652,7 @@ function offsetTransactions(transactions) {
                         if (diffFromAmount > 0 && diffToAmount > 0) {
                             resultRows.push(newRow);
                         }
+                        // 差分が0の場合は何も追加しない（完全に相殺される）
 
                         // 処理済みとしてマーク
                         processedIndices.add(idx1);
@@ -671,7 +672,7 @@ function offsetTransactions(transactions) {
     });
 
     // 結果を返す
-    return resultRows.length > 0 ? resultRows : [...transactions];
+    return resultRows;
 }
 
 /**
@@ -862,14 +863,30 @@ function generateSequenceDiagram(transactions, options = {}) {
     // 前処理
     let processedTransactions = [...transactions];
 
-    // 取引の集約（期間が'none'でない場合）
-    if (mergedOptions.aggregatePeriod !== 'none') {
+    // 取引の集約と相殺の処理
+    if (mergedOptions.aggregatePeriod === 'none') {
+        // まとめない場合は相殺も行わない
+        // 何もしない
+    } else {
+        // 取引の集約
         processedTransactions = aggregateTransactions(processedTransactions, mergedOptions.aggregatePeriod);
-    }
 
-    // 逆取引の相殺（オプションが有効な場合）
-    if (mergedOptions.offset) {
-        processedTransactions = offsetTransactions(processedTransactions);
+        // 逆取引の相殺（オプションが有効な場合）
+        if (mergedOptions.offset) {
+            // 期間ごとにグループ化して相殺
+            const periodGroups = groupTransactionsByPeriod(processedTransactions, mergedOptions.aggregatePeriod);
+            const offsetResults = [];
+
+            // 各期間ごとに相殺処理
+            Object.keys(periodGroups).forEach(period => {
+                const periodTransactions = periodGroups[period];
+                // 同じ期間内の取引のみで相殺
+                const offsetPeriodTransactions = offsetTransactions(periodTransactions);
+                offsetResults.push(...offsetPeriodTransactions);
+            });
+
+            processedTransactions = offsetResults;
+        }
     }
 
     // 全てのparticipantを収集
