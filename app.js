@@ -1,4 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // 言語設定の初期化
+    if (window.utils && window.utils.updatePageLanguage) {
+        // デフォルトで英語を設定
+        window.__currentLanguage = 'en';
+
+        // HTML要素のlang属性を設定
+        document.documentElement.lang = 'en';
+
+        // ページ全体の言語を更新
+        window.utils.updatePageLanguage();
+
+        // 言語切り替えボタンを追加
+        addLanguageSwitcher();
+    }
+
     // DOM要素の取得
     const steps = document.querySelectorAll('.step');
     const stepContents = document.querySelectorAll('.step-content');
@@ -115,19 +130,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (text) {
             processCSVText(text);
         } else {
-            textInfo.textContent = 'エラー: CSVデータを入力してください。';
+            textInfo.textContent = window.utils.translate('Error: Please enter CSV data.');
         }
     });
 
     // CSVテキスト処理
     function processCSVText(text) {
-        textInfo.textContent = 'CSVデータを処理中...';
+        textInfo.textContent = window.utils.translate('Processing CSV data...');
         try {
             csvData = text;
             parseCSV(csvData);
-            textInfo.textContent = 'CSVデータの処理が完了しました。';
+            textInfo.textContent = window.utils.translate('CSV data processing completed.');
         } catch (error) {
-            textInfo.textContent = `エラー: ${error.message}`;
+            textInfo.textContent = `${window.utils.translate('Error:')} ${error.message}`;
             console.error('CSV処理エラー:', error);
         }
     }
@@ -140,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileInfo.textContent = `${file.name} (${formatFileSize(file.size)})`;
                 readCSVFile(file);
             } else {
-                fileInfo.textContent = 'エラー: CSVファイルを選択してください。';
+                fileInfo.textContent = window.utils.translate('Error: Please select a CSV file.');
             }
         }
     }
@@ -160,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             parseCSV(csvData);
         };
         reader.onerror = function () {
-            fileInfo.textContent = 'ファイルの読み込み中にエラーが発生しました。';
+            fileInfo.textContent = window.utils.translate('Error reading file.');
         };
         reader.readAsText(file);
     }
@@ -173,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // KoinlyのCSVかどうかを判定（utils.jsの関数を使用）
         if (!window.utils.isKoinlyCSV(headers)) {
-            fileInfo.textContent = 'エラー: Koinlyのトランザクションデータではありません。';
+            fileInfo.textContent = window.utils.translate('Error: Not a Koinly transaction data.');
             return;
         }
 
@@ -237,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 通貨フィルターのHTML生成
         currencyFilter.innerHTML = '';
         if (currencies.size === 0) {
-            currencyFilter.innerHTML = '<p>通貨情報が見つかりませんでした。</p>';
+            currencyFilter.innerHTML = `<p>${window.utils.translate('No currency information found.')}</p>`;
             return;
         }
 
@@ -293,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
         if (filteredTransactions.length === 0) {
-            alert('選択された通貨のトランザクションがありません。');
+            alert(window.utils.translate('No transactions found for selected currencies.'));
             return;
         }
 
@@ -349,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function downloadSVG() {
         const svgElement = diagramPreview.querySelector('svg');
         if (!svgElement) {
-            alert('シーケンス図が生成されていません。');
+            alert(window.utils.translate('No sequence diagram has been generated.'));
             return;
         }
 
@@ -376,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mermaid Liveで開く
     function openInMermaidLive() {
         if (!generatedDiagram) {
-            alert('シーケンス図が生成されていません。');
+            alert(window.utils.translate('No sequence diagram has been generated.'));
             return;
         }
 
@@ -406,6 +421,101 @@ document.addEventListener('DOMContentLoaded', () => {
             offsetOption.disabled = false;
         }
     });
+
+    // 言語切り替えボタンを追加する関数
+    function addLanguageSwitcher() {
+        // 既存のフッターを取得
+        const footer = document.querySelector('footer');
+        if (!footer) return;
+
+        // 言語切り替えコンテナを作成
+        const langSwitcher = document.createElement('div');
+        langSwitcher.className = 'language-switcher';
+
+        // 日本語ボタン
+        const jaButton = document.createElement('button');
+        jaButton.textContent = '日本語';
+        jaButton.className = 'lang-button';
+        jaButton.dataset.lang = 'ja';
+
+        // 英語ボタン
+        const enButton = document.createElement('button');
+        enButton.textContent = 'English';
+        enButton.className = 'lang-button';
+        enButton.dataset.lang = 'en';
+
+        // デフォルトは英語を選択状態に
+        enButton.classList.add('active');
+
+        // クリックイベントを設定
+        jaButton.addEventListener('click', function () {
+            window.utils.setLanguage('ja');
+            updateLanguageButtonsState();
+        });
+
+        enButton.addEventListener('click', function () {
+            window.utils.setLanguage('en');
+            updateLanguageButtonsState();
+        });
+
+        // ボタンをコンテナに追加
+        langSwitcher.appendChild(jaButton);
+        langSwitcher.appendChild(enButton);
+
+        // フッターの前に言語切り替えコンテナを挿入
+        footer.insertAdjacentElement('beforebegin', langSwitcher);
+
+        // スタイルを追加
+        addLanguageSwitcherStyles();
+    }
+
+    // 言語ボタンの状態を更新する関数
+    function updateLanguageButtonsState() {
+        const buttons = document.querySelectorAll('.lang-button');
+        const currentLang = window.utils.getCurrentLanguage();
+
+        buttons.forEach(button => {
+            if (button.dataset.lang === currentLang) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+    }
+
+    // 言語切り替えボタンのスタイルを追加する関数
+    function addLanguageSwitcherStyles() {
+        // スタイル要素がまだ存在しない場合のみ追加
+        if (!document.getElementById('language-switcher-styles')) {
+            const style = document.createElement('style');
+            style.id = 'language-switcher-styles';
+            style.textContent = `
+                .language-switcher {
+                    display: flex;
+                    justify-content: center;
+                    margin: 20px 0;
+                    gap: 10px;
+                }
+                .lang-button {
+                    padding: 5px 15px;
+                    border: 1px solid var(--border-color);
+                    background-color: var(--background-color);
+                    border-radius: 4px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                .lang-button:hover {
+                    background-color: var(--active-step-bg);
+                }
+                .lang-button.active {
+                    background-color: var(--primary-color);
+                    color: white;
+                    border-color: var(--primary-color);
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
 
     // イベントリスナーの設定
     generateDiagramBtn.addEventListener('click', generateSequenceDiagram);
