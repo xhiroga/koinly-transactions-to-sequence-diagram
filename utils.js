@@ -560,6 +560,63 @@ function formatYearlyCurrencyTotalNote(firstParticipant, currencyTotals, year) {
 }
 
 /**
+ * 取引データを期間ごとにグループ化する関数
+ *
+ * @param {Array} transactions 取引データの配列
+ * @param {string} periodType 期間タイプ（'none', 'day', 'month', 'year'のいずれか）
+ * @returns {Object} 期間ごとにグループ化されたデータ
+ */
+function groupTransactionsByPeriod(transactions, periodType = 'year') {
+    const periodGroups = {};
+
+    transactions.forEach(row => {
+        // 日付情報の取得
+        let dateStr;
+        if (row["Date (UTC)"]) {
+            // 実際の日付がある場合はそれを使用
+            dateStr = row["Date (UTC)"];
+        } else if (row["Years (Date (UTC))"]) {
+            // 年のみの情報がある場合は、その年の1月1日を使用
+            const year = parseInt(row["Years (Date (UTC))"]);
+            dateStr = `${year}-01-01`;
+        } else {
+            // どちらもない場合は現在の日付を使用
+            dateStr = new Date().toISOString().split('T')[0];
+        }
+
+        // 期間キーを生成
+        let periodKey;
+        const date = new Date(dateStr);
+
+        switch (periodType) {
+            case 'day':
+                // 日単位: YYYY-MM-DD
+                periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                break;
+            case 'month':
+                // 月単位: YYYY-MM
+                periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                break;
+            case 'year':
+                // 年単位: YYYY
+                periodKey = date.getFullYear().toString();
+                break;
+            default:
+                // まとめない場合は日付をそのまま使用
+                periodKey = dateStr;
+                break;
+        }
+
+        if (!periodGroups[periodKey]) {
+            periodGroups[periodKey] = [];
+        }
+        periodGroups[periodKey].push(row);
+    });
+
+    return periodGroups;
+}
+
+/**
  * シーケンス図を生成する関数
  *
  * @param {Array} transactions 取引データの配列
@@ -615,50 +672,7 @@ function generateSequenceDiagram(transactions, options = {}) {
         diagramLines.push(`    participant ${participant}`);
     });
     // 期間ごとにグループ化
-    const periodGroups = {};
-    processedTransactions.forEach(row => {
-        // 日付情報の取得
-        let dateStr;
-        if (row["Date (UTC)"]) {
-            // 実際の日付がある場合はそれを使用
-            dateStr = row["Date (UTC)"];
-        } else if (row["Years (Date (UTC))"]) {
-            // 年のみの情報がある場合は、その年の1月1日を使用
-            const year = parseInt(row["Years (Date (UTC))"]);
-            dateStr = `${year}-01-01`;
-        } else {
-            // どちらもない場合は現在の日付を使用
-            dateStr = new Date().toISOString().split('T')[0];
-        }
-
-        // 期間キーを生成
-        let periodKey;
-        const date = new Date(dateStr);
-
-        switch (mergedOptions.aggregatePeriod) {
-            case 'day':
-                // 日単位: YYYY-MM-DD
-                periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-                break;
-            case 'month':
-                // 月単位: YYYY-MM
-                periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-                break;
-            case 'year':
-                // 年単位: YYYY
-                periodKey = date.getFullYear().toString();
-                break;
-            default:
-                // まとめない場合は日付をそのまま使用
-                periodKey = dateStr;
-                break;
-        }
-
-        if (!periodGroups[periodKey]) {
-            periodGroups[periodKey] = [];
-        }
-        periodGroups[periodKey].push(row);
-    });
+    const periodGroups = groupTransactionsByPeriod(processedTransactions, mergedOptions.aggregatePeriod);
 
     // 期間順にソート
     const sortedPeriods = Object.keys(periodGroups).sort();
@@ -692,6 +706,7 @@ if (typeof module !== 'undefined' && module.exports) {
         calculateYearlyBalanceChanges,
         formatYearlyBalanceNote,
         formatYearlyCurrencyTotalNote,
+        groupTransactionsByPeriod,
         generateSequenceDiagram
     };
 } else if (typeof window !== 'undefined') {
@@ -708,5 +723,6 @@ if (typeof module !== 'undefined' && module.exports) {
     window.utils.calculateYearlyBalanceChanges = calculateYearlyBalanceChanges;
     window.utils.formatYearlyBalanceNote = formatYearlyBalanceNote;
     window.utils.formatYearlyCurrencyTotalNote = formatYearlyCurrencyTotalNote;
+    window.utils.groupTransactionsByPeriod = groupTransactionsByPeriod;
     window.utils.generateSequenceDiagram = generateSequenceDiagram;
 }

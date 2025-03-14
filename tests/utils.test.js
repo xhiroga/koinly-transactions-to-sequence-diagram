@@ -332,6 +332,186 @@ describe('取引相殺関数のテスト', () => {
     });
 });
 
+// 期間ごとのグループ化関数のテスト
+describe('期間ごとのグループ化関数のテスト', () => {
+    // groupTransactionsByPeriod関数のテスト
+    test('groupTransactionsByPeriod - 年単位でグループ化する', () => {
+        const { groupTransactionsByPeriod } = require('../utils.js');
+
+        const transactions = [
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-01-15',
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect',
+                'From Currency': 'BTC;1',
+                'To Currency': 'JPY;13'
+            },
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-06-20',
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect',
+                'From Currency': 'ETH;3',
+                'To Currency': 'JPY;13'
+            },
+            {
+                'Years (Date (UTC))': 2022,
+                'Date (UTC)': '2022-03-10',
+                'From Wallet (read-only)': 'Kraken;kraken_connect',
+                'To Wallet (read-only)': 'Binance;binance',
+                'From Currency': 'JPY;13',
+                'To Currency': 'BTC;1'
+            }
+        ];
+
+        const result = groupTransactionsByPeriod(transactions, 'year');
+
+        // 2021年と2022年のグループがあることを確認
+        expect(Object.keys(result).sort()).toEqual(['2021', '2022']);
+
+        // 2021年のグループに2つのトランザクションがあることを確認
+        expect(result['2021'].length).toBe(2);
+
+        // 2022年のグループに1つのトランザクションがあることを確認
+        expect(result['2022'].length).toBe(1);
+    });
+
+    test('groupTransactionsByPeriod - 月単位でグループ化する', () => {
+        const { groupTransactionsByPeriod } = require('../utils.js');
+
+        const transactions = [
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-01-15',
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect'
+            },
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-01-20',
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect'
+            },
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-03-10',
+                'From Wallet (read-only)': 'Kraken;kraken_connect',
+                'To Wallet (read-only)': 'Binance;binance'
+            }
+        ];
+
+        const result = groupTransactionsByPeriod(transactions, 'month');
+
+        // 2021-01と2021-03のグループがあることを確認
+        expect(Object.keys(result).sort()).toEqual(['2021-01', '2021-03']);
+
+        // 2021-01のグループに2つのトランザクションがあることを確認
+        expect(result['2021-01'].length).toBe(2);
+
+        // 2021-03のグループに1つのトランザクションがあることを確認
+        expect(result['2021-03'].length).toBe(1);
+    });
+
+    test('groupTransactionsByPeriod - 日単位でグループ化する', () => {
+        const { groupTransactionsByPeriod } = require('../utils.js');
+
+        const transactions = [
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-01-15',
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect'
+            },
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-01-15',
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect'
+            },
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-01-16',
+                'From Wallet (read-only)': 'Kraken;kraken_connect',
+                'To Wallet (read-only)': 'Binance;binance'
+            }
+        ];
+
+        const result = groupTransactionsByPeriod(transactions, 'day');
+
+        // 2021-01-15と2021-01-16のグループがあることを確認
+        expect(Object.keys(result).sort()).toEqual(['2021-01-15', '2021-01-16']);
+
+        // 2021-01-15のグループに2つのトランザクションがあることを確認
+        expect(result['2021-01-15'].length).toBe(2);
+
+        // 2021-01-16のグループに1つのトランザクションがあることを確認
+        expect(result['2021-01-16'].length).toBe(1);
+    });
+
+    test('groupTransactionsByPeriod - まとめない場合は日付ごとにグループ化する', () => {
+        const { groupTransactionsByPeriod } = require('../utils.js');
+
+        const transactions = [
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-01-15',
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect'
+            },
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-01-15',
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect'
+            },
+            {
+                'Years (Date (UTC))': 2021,
+                'Date (UTC)': '2021-01-16',
+                'From Wallet (read-only)': 'Kraken;kraken_connect',
+                'To Wallet (read-only)': 'Binance;binance'
+            }
+        ];
+
+        const result = groupTransactionsByPeriod(transactions, 'none');
+
+        // 2021-01-15と2021-01-16のグループがあることを確認
+        expect(Object.keys(result).sort()).toEqual(['2021-01-15', '2021-01-16']);
+
+        // 2021-01-15のグループに2つのトランザクションがあることを確認
+        expect(result['2021-01-15'].length).toBe(2);
+
+        // 2021-01-16のグループに1つのトランザクションがあることを確認
+        expect(result['2021-01-16'].length).toBe(1);
+    });
+
+    test('groupTransactionsByPeriod - 日付情報がない場合は年情報を使用する', () => {
+        const { groupTransactionsByPeriod } = require('../utils.js');
+
+        const transactions = [
+            {
+                'Years (Date (UTC))': 2021,
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect'
+            },
+            {
+                'Years (Date (UTC))': 2022,
+                'From Wallet (read-only)': 'Binance;binance',
+                'To Wallet (read-only)': 'Kraken;kraken_connect'
+            }
+        ];
+
+        const result = groupTransactionsByPeriod(transactions, 'year');
+
+        // 2021と2022のグループがあることを確認
+        expect(Object.keys(result).sort()).toEqual(['2021', '2022']);
+
+        // 各グループに1つのトランザクションがあることを確認
+        expect(result['2021'].length).toBe(1);
+        expect(result['2022'].length).toBe(1);
+    });
+});
+
 // 残高計算と集計関数のテスト
 describe('残高計算と集計関数のテスト', () => {
     // calculateYearlyBalanceChanges関数のテスト
