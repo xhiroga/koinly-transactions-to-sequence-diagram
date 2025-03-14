@@ -374,6 +374,88 @@ footer {
     font-size: 0.9rem;
 }
 
+/* タブUIのスタイル */
+.input-tabs {
+    margin-bottom: 20px;
+}
+
+.tab-buttons {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-button {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--light-text-color);
+    transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+    color: var(--primary-color);
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+/* テキスト入力エリアのスタイル */
+.text-input-container {
+    padding: 20px;
+    background-color: var(--background-color);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.text-input-container h3 {
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.text-input-container p {
+    margin-bottom: 15px;
+    color: var(--light-text-color);
+}
+
+#csv-text-input {
+    width: 100%;
+    min-height: 200px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    resize: vertical;
+}
+
+#csv-text-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
+}
+
+.text-info {
+    margin-top: 15px;
+    font-style: italic;
+}
+
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
     .container {
@@ -408,6 +490,16 @@ footer {
     
     .primary-button, .secondary-button {
         width: 100%;
+    }
+    
+    .tab-buttons {
+        flex-direction: column;
+    }
+    
+    .tab-button {
+        width: 100%;
+        text-align: center;
+        padding: 10px 0;
     }
 }
 

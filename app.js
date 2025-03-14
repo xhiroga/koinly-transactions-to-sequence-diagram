@@ -5,6 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropArea = document.getElementById('drop-area');
     const fileInput = document.getElementById('file-input');
     const fileInfo = document.getElementById('file-info');
+    const csvTextInput = document.getElementById('csv-text-input');
+    const processCSVTextBtn = document.getElementById('process-csv-text');
+    const textInfo = document.getElementById('text-info');
+    const fileUploadTab = document.getElementById('file-upload-tab');
+    const textInputTab = document.getElementById('text-input-tab');
+    const fileUploadContent = document.getElementById('file-upload-content');
+    const textInputContent = document.getElementById('text-input-content');
     const currencyFilter = document.getElementById('currency-filter');
     const generateDiagramBtn = document.getElementById('generate-diagram');
     const backToStep1Btn = document.getElementById('back-to-step1');
@@ -82,10 +89,48 @@ document.addEventListener('DOMContentLoaded', () => {
         handleFiles(files);
     }
 
+    // タブ切り替え処理
+    fileUploadTab.addEventListener('click', function () {
+        fileUploadTab.classList.add('active');
+        textInputTab.classList.remove('active');
+        fileUploadContent.classList.add('active');
+        textInputContent.classList.remove('active');
+    });
+
+    textInputTab.addEventListener('click', function () {
+        textInputTab.classList.add('active');
+        fileUploadTab.classList.remove('active');
+        textInputContent.classList.add('active');
+        fileUploadContent.classList.remove('active');
+    });
+
     // ファイル選択処理
     fileInput.addEventListener('change', function () {
         handleFiles(this.files);
     });
+
+    // CSVテキスト処理ボタン
+    processCSVTextBtn.addEventListener('click', function () {
+        const text = csvTextInput.value.trim();
+        if (text) {
+            processCSVText(text);
+        } else {
+            textInfo.textContent = 'エラー: CSVデータを入力してください。';
+        }
+    });
+
+    // CSVテキスト処理
+    function processCSVText(text) {
+        textInfo.textContent = 'CSVデータを処理中...';
+        try {
+            csvData = text;
+            parseCSV(csvData);
+            textInfo.textContent = 'CSVデータの処理が完了しました。';
+        } catch (error) {
+            textInfo.textContent = `エラー: ${error.message}`;
+            console.error('CSV処理エラー:', error);
+        }
+    }
 
     // ファイル処理
     function handleFiles(files) {
