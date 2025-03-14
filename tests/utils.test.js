@@ -156,7 +156,7 @@ describe('データ処理関数のテスト', () => {
             'Sum of To Amount': 120000
         };
 
-        expect(processRow(row)).toBe('BTC (Binance)->>JPY (Kraken): 0.1BTC -> 120,000JPY');
+        expect(processRow(row)).toBe('Binance (BTC)->>Kraken (JPY): 0.1BTC -> 120,000JPY');
     });
 
     test('processRow - 出金操作の場合、正しいシーケンス行を生成する', () => {
@@ -169,7 +169,7 @@ describe('データ処理関数のテスト', () => {
             'Sum of To Amount': 0
         };
 
-        expect(processRow(row)).toBe('BTC (Kraken)->>BTC UnknownWallet: 0.3BTCをWithdraw');
+        expect(processRow(row)).toBe('Kraken (BTC)->>UnknownWallet (BTC): 0.3BTCをWithdraw');
     });
 
     test('processRow - 入金操作の場合、正しいシーケンス行を生成する', () => {
@@ -182,7 +182,7 @@ describe('データ処理関数のテスト', () => {
             'Sum of To Amount': 1.5
         };
 
-        expect(processRow(row)).toBe('ETH UnknownWallet->>ETH (Binance): 1.5ETHをDeposit');
+        expect(processRow(row)).toBe('UnknownWallet (ETH)->>Binance (ETH): 1.5ETHをDeposit');
     });
 
     // extractParticipants関数のテスト
@@ -195,8 +195,8 @@ describe('データ処理関数のテスト', () => {
         };
 
         const participants = extractParticipants(row);
-        expect(participants).toContain('BTC (Binance)');
-        expect(participants).toContain('JPY (Kraken)');
+        expect(participants).toContain('Binance (BTC)');
+        expect(participants).toContain('Kraken (JPY)');
         expect(participants.length).toBe(2);
     });
 
@@ -209,8 +209,8 @@ describe('データ処理関数のテスト', () => {
         };
 
         const participants = extractParticipants(row);
-        expect(participants).toContain('ETH UnknownWallet');
-        expect(participants).toContain('ETH (Binance)');
+        expect(participants).toContain('UnknownWallet (ETH)');
+        expect(participants).toContain('Binance (ETH)');
         expect(participants.length).toBe(2);
     });
 });
@@ -371,12 +371,12 @@ describe('残高計算と集計関数のテスト', () => {
         const [yearlyChanges, yearlyCurrencyTotals] = calculateYearlyBalanceChanges(transactions);
 
         // 2021年の変動をテスト
-        expect(yearlyChanges[2021]['BTC (Binance)']).toBe(-1);
-        expect(yearlyChanges[2021]['ETH (Kraken)']).toBe(10);
+        expect(yearlyChanges[2021]['Binance (BTC)']).toBe(-1);
+        expect(yearlyChanges[2021]['Kraken (ETH)']).toBe(10);
 
         // 2022年の変動をテスト
-        expect(yearlyChanges[2022]['BTC (Binance)']).toBe(-0.5);
-        expect(yearlyChanges[2022]['JPY (Kraken)']).toBe(2500000);
+        expect(yearlyChanges[2022]['Binance (BTC)']).toBe(-0.5);
+        expect(yearlyChanges[2022]['Kraken (JPY)']).toBe(2500000);
 
         // 通貨合計をテスト
         expect(yearlyCurrencyTotals[2021]['BTC']).toBe(-1);
@@ -480,12 +480,12 @@ describe('シーケンス図生成機能のテスト', () => {
 
         // 最低限のチェック
         expect(diagram).toContain('sequenceDiagram');
-        expect(diagram).toContain('participant BTC (Binance)');
-        expect(diagram).toContain('participant BTC UnknownWallet');
-        expect(diagram).toContain('participant ETH (Kraken)');
-        expect(diagram).toContain('participant ETH UnknownWallet');
-        expect(diagram).toContain('BTC (Binance)->>BTC UnknownWallet: 1BTCをWithdraw');
-        expect(diagram).toContain('ETH UnknownWallet->>ETH (Kraken): 10ETHをDeposit');
+        expect(diagram).toContain('participant Binance (BTC)');
+        expect(diagram).toContain('participant UnknownWallet (BTC)');
+        expect(diagram).toContain('participant Kraken (ETH)');
+        expect(diagram).toContain('participant UnknownWallet (ETH)');
+        expect(diagram).toContain('Binance (BTC)->>UnknownWallet (BTC): 1BTCをWithdraw');
+        expect(diagram).toContain('UnknownWallet (ETH)->>Kraken (ETH): 10ETHをDeposit');
     });
 
     test('generateSequenceDiagram - no_offsetオプションが機能する', () => {
@@ -514,11 +514,11 @@ describe('シーケンス図生成機能のテスト', () => {
 
         // 相殺あり
         const diagram1 = generateSequenceDiagram(transactions);
-        expect(diagram1).toContain('BTC (Binance)->>JPY (Kraken): 0.2BTC -> 1,000,000JPY');
+        expect(diagram1).toContain('Binance (BTC)->>Kraken (JPY): 0.2BTC -> 1,000,000JPY');
 
         // 相殺なし
         const diagram2 = generateSequenceDiagram(transactions, true);
-        expect(diagram2).toContain('BTC (Binance)->>JPY (Kraken): 1BTC -> 5,000,000JPY');
-        expect(diagram2).toContain('JPY (Kraken)->>BTC (Binance): 4,000,000JPY -> 0.8BTC');
+        expect(diagram2).toContain('Binance (BTC)->>Kraken (JPY): 1BTC -> 5,000,000JPY');
+        expect(diagram2).toContain('Kraken (JPY)->>Binance (BTC): 4,000,000JPY -> 0.8BTC');
     });
 });

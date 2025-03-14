@@ -99,19 +99,19 @@ function processRow(row) {
 
     // 両ウォレットに情報がある場合：変換（conversion）
     if (fromWallet && fromWallet.trim() !== "" && toWallet && toWallet.trim() !== "") {
-        return `${fromCurrency} (${fromExchange})->>${toCurrency} (${toExchange}): ${formatAmount(sumFrom)}${fromCurrency} -> ${formatAmount(sumTo)}${toCurrency}`;
+        return `${fromExchange} (${fromCurrency})->>${toExchange} (${toCurrency}): ${formatAmount(sumFrom)}${fromCurrency} -> ${formatAmount(sumTo)}${toCurrency}`;
     }
     // To Walletが空欄の場合：出金（Withdraw）とみなし、To側はUnknownWallet
     else if (fromWallet && fromWallet.trim() !== "" && (!toWallet || toWallet.trim() === "")) {
-        return `${fromCurrency} (${fromExchange})->>${fromCurrency} UnknownWallet: ${formatAmount(sumFrom)}${fromCurrency}をWithdraw`;
+        return `${fromExchange} (${fromCurrency})->>${"UnknownWallet"} (${fromCurrency}): ${formatAmount(sumFrom)}${fromCurrency}をWithdraw`;
     }
     // From Walletが空欄の場合：入金（Deposit）とみなし、From側はUnknownWallet
     else if ((!fromWallet || fromWallet.trim() === "") && toWallet && toWallet.trim() !== "") {
-        return `${toCurrency} UnknownWallet->>${toCurrency} (${toExchange}): ${formatAmount(sumTo)}${toCurrency}をDeposit`;
+        return `${"UnknownWallet"} (${toCurrency})->>${toExchange} (${toCurrency}): ${formatAmount(sumTo)}${toCurrency}をDeposit`;
     }
     // 両方空欄の場合（想定外）
     else {
-        return `${toCurrency} UnknownWallet->>${toCurrency} UnknownWallet: ${formatAmount(sumTo)}${toCurrency}をDeposit`;
+        return `${"UnknownWallet"} (${toCurrency})->>${"UnknownWallet"} (${toCurrency}): ${formatAmount(sumTo)}${toCurrency}をDeposit`;
     }
 }
 
@@ -137,21 +137,21 @@ function extractParticipants(row) {
 
     // From側の処理
     if (fromCurrency) {
-        participants.push(`${fromCurrency} (${fromExchange})`);
+        participants.push(`${fromExchange} (${fromCurrency})`);
 
         // 出金操作の場合は「UnknownWallet」も参加者として追加
         if (!toWallet || toWallet.trim() === "") {
-            participants.push(`${fromCurrency} UnknownWallet`);
+            participants.push(`UnknownWallet (${fromCurrency})`);
         }
     }
 
     // To側の処理
     if (toCurrency) {
-        participants.push(`${toCurrency} (${toExchange})`);
+        participants.push(`${toExchange} (${toCurrency})`);
 
         // 入金操作の場合は「UnknownWallet」も参加者として追加
         if (!fromWallet || fromWallet.trim() === "") {
-            participants.push(`${toCurrency} UnknownWallet`);
+            participants.push(`UnknownWallet (${toCurrency})`);
         }
     }
 
@@ -414,7 +414,7 @@ function calculateYearlyBalanceChanges(transactions) {
         // From側の変動（マイナス）
         if (fromCurrency && fromExchange !== "UnknownWallet") {
             // 通貨・取引所ごとの変動量
-            const fromKey = `${fromCurrency} (${fromExchange})`;
+            const fromKey = `${fromExchange} (${fromCurrency})`;
             if (yearlyChanges[year][fromKey] === undefined) {
                 yearlyChanges[year][fromKey] = 0;
             }
@@ -430,7 +430,7 @@ function calculateYearlyBalanceChanges(transactions) {
         // To側の変動（プラス）
         if (toCurrency && toExchange !== "UnknownWallet") {
             // 通貨・取引所ごとの変動量
-            const toKey = `${toCurrency} (${toExchange})`;
+            const toKey = `${toExchange} (${toCurrency})`;
             if (yearlyChanges[year][toKey] === undefined) {
                 yearlyChanges[year][toKey] = 0;
             }
@@ -471,7 +471,7 @@ function formatYearlyBalanceNote(firstParticipant, changes) {
     const changeStrs = sortedChanges.map(([participant, amount]) => {
         // 小数点以下の不要な0を除去
         const formattedAmount = formatAmount(amount);
-        const currency = participant.split(" ")[0]; // "BTC (Binance)" から "BTC" を抽出
+        const currency = participant.match(/\(([^)]+)\)/)[1]; // "Binance (BTC)" から "BTC" を抽出
 
         // プラス記号を追加
         if (amount > 0) {
