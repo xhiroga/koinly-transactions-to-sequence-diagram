@@ -397,8 +397,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // エンコードしたダイアグラムをURLに埋め込む
-        const encoded = encodeURIComponent(generatedDiagram);
-        const url = `https://mermaid.live/view#pako:${pako_deflate_base64(generatedDiagram)}`;
+        const encoded = pako_deflate_base64(generatedDiagram)
+        console.log({ encoded });
+        const url = `https://mermaid.live/view#pako:${encoded}`;
         window.open(url, '_blank');
     }
 
