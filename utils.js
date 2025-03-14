@@ -529,7 +529,6 @@ function formatYearlyCurrencyTotalNote(firstParticipant, currencyTotals, year) {
  * @param {Object} options オプション設定
  * @param {boolean} options.offset 逆取引を相殺するか（デフォルト: true）
  * @param {boolean} options.aggregate 同じ通貨ペア間の取引を集約するか（デフォルト: true）
- * @param {boolean} options.showNotes 残高変動ノートを表示するか（デフォルト: false）
  * @returns {string} Mermaid形式のシーケンス図
  */
 function generateSequenceDiagram(transactions, options = {}) {
@@ -537,19 +536,13 @@ function generateSequenceDiagram(transactions, options = {}) {
     const defaultOptions = {
         offset: true,       // 逆取引を相殺する
         aggregate: true,    // 同じ通貨ペア間の取引を集約する
-        showNotes: false    // 残高変動ノートを表示しない
     };
 
     // オプションをマージ
     const mergedOptions = { ...defaultOptions, ...options };
 
-    // 後方互換性のため、古いパラメータ形式もサポート
     if (arguments.length > 1 && typeof arguments[1] === 'boolean') {
-        // 古い形式: generateSequenceDiagram(transactions, offset, show_notes)
         mergedOptions.offset = arguments[1];
-        if (arguments.length > 2) {
-            mergedOptions.showNotes = arguments[2];
-        }
     }
 
     // 前処理
@@ -575,9 +568,6 @@ function generateSequenceDiagram(transactions, options = {}) {
 
     // participantをアルファベット順でソート
     const sortedParticipants = Array.from(allParticipants).sort();
-
-    // 年ごとの変動量を計算
-    const [yearlyChanges, yearlyCurrencyTotals] = calculateYearlyBalanceChanges(processedTransactions);
 
     // シーケンス図の生成
     const diagramLines = ["sequenceDiagram", "    autonumber"];
@@ -608,29 +598,6 @@ function generateSequenceDiagram(transactions, options = {}) {
             const line = processRow(row);
             diagramLines.push(`    ${line}`);
         });
-
-        // showNotesが有効な場合、残高変動のノートを追加
-        if (mergedOptions.showNotes) {
-            // 通貨ごとの合計変動量をノートとして追加
-            if (year in yearlyCurrencyTotals) {
-                const currencyNote = formatYearlyCurrencyTotalNote(
-                    sortedParticipants[0], yearlyCurrencyTotals[year], year
-                );
-                if (currencyNote) {
-                    diagramLines.push(currencyNote);
-                }
-            }
-
-            // 通貨・取引所ごとの変動量をノートとして追加
-            if (year in yearlyChanges) {
-                const exchangeNote = formatYearlyBalanceNote(
-                    sortedParticipants[0], yearlyChanges[year]
-                );
-                if (exchangeNote) {
-                    diagramLines.push(exchangeNote);
-                }
-            }
-        }
     });
 
     return diagramLines.join("\n");

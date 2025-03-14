@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const diagramPreview = document.getElementById('diagram-preview');
     const offsetOption = document.getElementById('offset-option');
     const aggregateOption = document.getElementById('aggregate-option');
-    const showNotesOption = document.getElementById('show-notes-option');
 
     // グローバル変数
     let csvData = null;
@@ -84,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ファイル選択処理
-    fileInput.addEventListener('change', function() {
+    fileInput.addEventListener('change', function () {
         handleFiles(this.files);
     });
 
@@ -111,11 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // CSVファイルの読み込み
     function readCSVFile(file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             csvData = e.target.result;
             parseCSV(csvData);
         };
-        reader.onerror = function() {
+        reader.onerror = function () {
             fileInfo.textContent = 'ファイルの読み込み中にエラーが発生しました。';
         };
         reader.readAsText(file);
@@ -126,13 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // CSVヘッダーとデータ行に分割
         const lines = csv.split('\n');
         const headers = lines[0].split(',').map(header => header.trim());
-        
+
         // KoinlyのCSVかどうかを判定（utils.jsの関数を使用）
         if (!window.utils.isKoinlyCSV(headers)) {
             fileInfo.textContent = 'エラー: Koinlyのトランザクションデータではありません。';
             return;
         }
-        
+
         // 必要なヘッダーのインデックスを取得
         const dateIndex = headers.indexOf('Date (UTC)');
         const typeIndex = headers.indexOf('Type');
@@ -142,15 +141,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const toCurrencyIndex = headers.indexOf('To Currency');
         const fromWalletIndex = headers.indexOf('From Wallet (read-only)');
         const toWalletIndex = headers.indexOf('To Wallet (read-only)');
-        
+
         // データ行を解析
         parsedTransactions = [];
         for (let i = 1; i < lines.length; i++) {
             if (!lines[i].trim()) continue;
-            
+
             // カンマで分割（引用符内のカンマを考慮）
             const values = lines[i].split(',').map(value => value.trim());
-            
+
             if (values.length >= Math.min(fromWalletIndex, toWalletIndex) + 1) {
                 const transaction = {
                     date: values[dateIndex],
@@ -162,20 +161,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     toAmount: values[toAmountIndex] || '0',
                     toCurrency: values[toCurrencyIndex] || ''
                 };
-                
+
                 // 通貨情報を設定（表示用）
                 // fromCurrencyが存在する場合はそれを使用、なければtoCurrencyを使用
                 transaction.currency = transaction.fromCurrency || transaction.toCurrency;
-                
+
                 parsedTransactions.push(transaction);
             }
         }
 
         console.log({ parsedTransactions });
-        
+
         // 通貨フィルターの生成
         generateCurrencyFilter();
-        
+
         // ステップ2に進む
         goToStep(2);
     }
@@ -189,32 +188,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 currencies.add(transaction.currency);
             }
         });
-        
+
         // 通貨フィルターのHTML生成
         currencyFilter.innerHTML = '';
         if (currencies.size === 0) {
             currencyFilter.innerHTML = '<p>通貨情報が見つかりませんでした。</p>';
             return;
         }
-        
+
         currencies.forEach(currency => {
             const checkbox = document.createElement('label');
             checkbox.className = 'currency-checkbox';
-            
+
             const input = document.createElement('input');
             input.type = 'checkbox';
             input.value = currency;
             input.checked = true;
             selectedCurrencies.add(currency);
-            
-            input.addEventListener('change', function() {
+
+            input.addEventListener('change', function () {
                 if (this.checked) {
                     selectedCurrencies.add(currency);
                 } else {
                     selectedCurrencies.delete(currency);
                 }
             });
-            
+
             checkbox.appendChild(input);
             checkbox.appendChild(document.createTextNode(currency));
             currencyFilter.appendChild(checkbox);
@@ -227,12 +226,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const filteredTransactions = parsedTransactions.filter(transaction =>
             selectedCurrencies.has(transaction.currency)
         );
-        
+
         if (filteredTransactions.length === 0) {
             alert('選択された通貨のトランザクションがありません。');
             return;
         }
-        
+
         // シーケンス図生成のための前処理
         const transactions = filteredTransactions.map(transaction => {
             // utils.js で使用するフォーマットに変換
@@ -246,28 +245,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Sum of To Amount': parseFloat(transaction.toAmount) || 0
             };
         });
-        
+
         // UIのオプション設定を読み取る
         const options = {
             offset: offsetOption.checked,      // 逆取引の相殺を行う
             aggregate: aggregateOption.checked, // 同じ通貨ペア間の取引をまとめる
-            showNotes: showNotesOption.checked  // 残高変動ノートを表示
         };
-        
+
         // utils.jsの関数を使用してシーケンス図を生成
         const mermaidCode = window.utils.generateSequenceDiagram(
             transactions,
             options
         );
         console.log({ mermaidCode });
-        
+
         // 生成されたコードを保存
         generatedDiagram = mermaidCode;
-        
+
         // プレビューを表示
         diagramPreview.innerHTML = `<div class="mermaid">${mermaidCode}</div>`;
         mermaid.init(undefined, document.querySelectorAll('.mermaid'));
-        
+
         // ステップ3に進む
         goToStep(3);
     }
@@ -279,18 +277,18 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('シーケンス図が生成されていません。');
             return;
         }
-        
+
         // SVGをシリアライズ
         const serializer = new XMLSerializer();
         let source = serializer.serializeToString(svgElement);
-        
+
         // SVGのXMLを修正
         source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
-        
+
         // Blobを作成
-        const blob = new Blob([source], {type: 'image/svg+xml;charset=utf-8'});
+        const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
-        
+
         // ダウンロードリンクを作成
         const downloadLink = document.createElement('a');
         downloadLink.href = url;
@@ -306,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('シーケンス図が生成されていません。');
             return;
         }
-        
+
         // エンコードしたダイアグラムをURLに埋め込む
         const encoded = encodeURIComponent(generatedDiagram);
         const url = `https://mermaid.live/view#pako:${pako_deflate_base64(generatedDiagram)}`;

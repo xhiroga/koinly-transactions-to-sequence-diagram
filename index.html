@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,12 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1>Koinly Transactions to Sequence Diagram</h1>
         </header>
-        
+
         <div class="stepper">
             <div class="step active" id="step1">
                 <div class="step-number">1</div>
@@ -28,13 +30,14 @@
                 <div class="step-title">Sequence Diagram</div>
             </div>
         </div>
-        
+
         <main>
             <!-- Step 1: CSV Upload -->
             <section class="step-content active" id="step1-content">
                 <div class="upload-container" id="drop-area">
                     <div class="upload-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="17 8 12 3 7 8"></polyline>
                             <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -47,7 +50,7 @@
                     <p class="file-info" id="file-info"></p>
                 </div>
             </section>
-            
+
             <!-- Step 2: Filter Settings -->
             <section class="step-content" id="step2-content">
                 <div class="filter-container">
@@ -56,35 +59,29 @@
                         <!-- 通貨チェックボックスがここに動的に生成されます -->
                         <p class="loading">CSVファイルを解析中...</p>
                     </div>
-                    
+
                     <h3>表示オプション</h3>
                     <div class="display-options">
-                        <label class="option-checkbox">
-                            <input type="checkbox" id="offset-option" checked>
-                            逆取引を相殺する
-                            <span class="tooltip">有効にすると、逆方向の取引（例：BTC→JPYとJPY→BTC）を相殺して差分のみ表示します</span>
-                        </label>
-                        
                         <label class="option-checkbox">
                             <input type="checkbox" id="aggregate-option" checked>
                             同一通貨ペア・取引所間の取引をまとめる
                             <span class="tooltip">有効にすると、同じ年内の同じ通貨ペア間・取引所間の取引がまとめられます</span>
                         </label>
-                        
+
                         <label class="option-checkbox">
-                            <input type="checkbox" id="show-notes-option">
-                            年ごとの残高変動を表示
-                            <span class="tooltip">有効にすると、各年の通貨残高変動をノートとして表示します</span>
+                            <input type="checkbox" id="offset-option" checked>
+                            逆取引を相殺する
+                            <span class="tooltip">有効にすると、同一取引所ペア間の逆方向の取引（例：BTC→JPYとJPY→BTC）を相殺して差分のみ表示します</span>
                         </label>
                     </div>
-                    
+
                     <div class="actions">
                         <button id="back-to-step1" class="secondary-button">戻る</button>
                         <button id="generate-diagram" class="primary-button">シーケンス図を生成</button>
                     </div>
                 </div>
             </section>
-            
+
             <!-- Step 3: Sequence Diagram -->
             <section class="step-content" id="step3-content">
                 <div class="diagram-container">
@@ -100,13 +97,14 @@
                 </div>
             </section>
         </main>
-        
+
         <footer>
             <p>&copy; 2025 Koinly Transactions to Sequence Diagram</p>
         </footer>
     </div>
-    
+
     <script src="utils.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>
