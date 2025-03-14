@@ -523,43 +523,6 @@ function formatYearlyBalanceNote(firstParticipant, changes) {
 }
 
 /**
- * 年ごとの通貨合計変動量をnote形式でフォーマットする関数
- */
-function formatYearlyCurrencyTotalNote(firstParticipant, currencyTotals, year) {
-    // 変動量が0でないものだけをフィルタリング
-    const filteredTotals = {};
-    Object.keys(currencyTotals).forEach(key => {
-        if (Math.abs(currencyTotals[key]) > 0.000001) {
-            filteredTotals[key] = currencyTotals[key];
-        }
-    });
-
-    if (Object.keys(filteredTotals).length === 0) {
-        return null;
-    }
-
-    // 変動量の大きい順にソート
-    const sortedTotals = Object.entries(filteredTotals)
-        .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
-
-    // 変動量を文字列に変換
-    const totalStrs = sortedTotals.map(([currency, amount]) => {
-        // 小数点以下の不要な0を除去
-        const formattedAmount = formatAmount(amount);
-
-        // プラス記号を追加
-        if (amount > 0) {
-            return `${currency} +${formattedAmount}${currency}`;
-        } else {
-            return `${currency} ${formattedAmount}${currency}`;
-        }
-    });
-
-    // note形式の文字列を生成（左側に表示）
-    return `    Note right of ${firstParticipant}: ${year}年通貨合計: ${totalStrs.join(', ')}`;
-}
-
-/**
  * 取引データを期間ごとにグループ化する関数
  *
  * @param {Array} transactions 取引データの配列
@@ -705,7 +668,6 @@ if (typeof module !== 'undefined' && module.exports) {
         offsetTransactions,
         calculateYearlyBalanceChanges,
         formatYearlyBalanceNote,
-        formatYearlyCurrencyTotalNote,
         groupTransactionsByPeriod,
         generateSequenceDiagram
     };
@@ -722,7 +684,6 @@ if (typeof module !== 'undefined' && module.exports) {
     window.utils.offsetTransactions = offsetTransactions;
     window.utils.calculateYearlyBalanceChanges = calculateYearlyBalanceChanges;
     window.utils.formatYearlyBalanceNote = formatYearlyBalanceNote;
-    window.utils.formatYearlyCurrencyTotalNote = formatYearlyCurrencyTotalNote;
     window.utils.groupTransactionsByPeriod = groupTransactionsByPeriod;
     window.utils.generateSequenceDiagram = generateSequenceDiagram;
 }
