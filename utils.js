@@ -53,60 +53,6 @@ const translations = {
         "Parsing CSV file...": "CSVファイルを解析中...",
 
         // シーケンス図内のテキスト
-        "Withdraw": "をWithdraw",
-        "Deposit": "をDeposit"
-    },
-    en: {
-        // Stepper
-        "Upload CSV": "Upload CSV",
-        "Set Filters": "Set Filters",
-        "Sequence Diagram": "Sequence Diagram",
-
-        // Tabs and Upload
-        "File Upload": "File Upload",
-        "CSV Text Input": "CSV Text Input",
-        "Drag & Drop CSV File": "Drag & Drop CSV File",
-        "or": "or",
-        "Select File": "Select File",
-        "Enter CSV Data": "Enter CSV Data",
-        "Paste transaction data exported from Koinly": "Paste transaction data exported from Koinly",
-        "Process CSV Data": "Process CSV Data",
-
-        // Filter Settings
-        "Currency Filter Settings": "Currency Filter Settings",
-        "No currency information found.": "No currency information found.",
-        "Display Options": "Display Options",
-        "Aggregate transactions by:": "Aggregate transactions by:",
-        "None": "None",
-        "Day": "Day",
-        "Month": "Month",
-        "Year": "Year",
-        "Offset reverse transactions within the period": "Offset reverse transactions within the period",
-
-        // Sequence Diagram
-        "Generated Sequence Diagram": "Generated Sequence Diagram",
-        "Download SVG": "Download SVG",
-        "Open in Mermaid Live": "Open in Mermaid Live",
-        "Copy Code": "Copy Code",
-        "Code copied to clipboard": "Code copied to clipboard",
-
-        // Buttons
-        "Back": "Back",
-        "Generate Sequence Diagram": "Generate Sequence Diagram",
-
-        // Error Messages
-        "Error: Please enter CSV data.": "Error: Please enter CSV data.",
-        "Processing CSV data...": "Processing CSV data...",
-        "CSV data processing completed.": "CSV data processing completed.",
-        "Error:": "Error:",
-        "Error: Please select a CSV file.": "Error: Please select a CSV file.",
-        "Error reading file.": "Error reading file.",
-        "Error: Not a Koinly transaction data.": "Error: Not a Koinly transaction data.",
-        "No transactions found for selected currencies.": "No transactions found for selected currencies.",
-        "No sequence diagram has been generated.": "No sequence diagram has been generated.",
-        "Parsing CSV file...": "Parsing CSV file...",
-
-        // Sequence Diagram Text
         "Withdraw": " Withdraw",
         "Deposit": " Deposit"
     }
@@ -159,8 +105,8 @@ function translate(key) {
     // テスト環境では固定の翻訳を返す
     if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') {
         // テスト用の固定翻訳
-        if (key === 'Withdraw') return 'をWithdraw';
-        if (key === 'Deposit') return 'をDeposit';
+        if (key === 'Withdraw') return ' Withdraw';
+        if (key === 'Deposit') return ' Deposit';
         return key;
     }
 
@@ -364,15 +310,15 @@ function processRow(row) {
     }
     // To Walletが空欄の場合：出金（Withdraw）とみなし、To側はUnknownWallet
     else if (fromWallet && fromWallet.trim() !== "" && (!toWallet || toWallet.trim() === "")) {
-        return `${fromExchange} (${fromCurrency})->>${"UnknownWallet"} (${fromCurrency}): ${formatAmount(sumFrom)}${fromCurrency}${translate("Withdraw")}`;
+        return `${fromExchange} (${fromCurrency})->>${"UnknownWallet"} (${fromCurrency}): ${formatAmount(sumFrom)}${fromCurrency} Withdraw`;
     }
     // From Walletが空欄の場合：入金（Deposit）とみなし、From側はUnknownWallet
     else if ((!fromWallet || fromWallet.trim() === "") && toWallet && toWallet.trim() !== "") {
-        return `${"UnknownWallet"} (${toCurrency})->>${toExchange} (${toCurrency}): ${formatAmount(sumTo)}${toCurrency}${translate("Deposit")}`;
+        return `${"UnknownWallet"} (${toCurrency})->>${toExchange} (${toCurrency}): ${formatAmount(sumTo)}${toCurrency} Deposit`;
     }
     // 両方空欄の場合（想定外）
     else {
-        return `${"UnknownWallet"} (${toCurrency})->>${"UnknownWallet"} (${toCurrency}): ${formatAmount(sumTo)}${toCurrency}${translate("Deposit")}`;
+        return `${"UnknownWallet"} (${toCurrency})->>${"UnknownWallet"} (${toCurrency}): ${formatAmount(sumTo)}${toCurrency} Deposit`;
     }
 }
 

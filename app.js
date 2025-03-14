@@ -397,7 +397,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // エンコードしたダイアグラムをURLに埋め込む
-        const encoded = pako_deflate_base64(generatedDiagram)
+        const requestJson = { "code": generatedDiagram, "mermaid": "{\n  \"theme\": \"default\"\n}", "autoSync": true, "rough": false, "updateDiagram": true, "panZoom": false }
+        const encoded = pako_deflate_base64(JSON.stringify(requestJson));
         console.log({ encoded });
         const url = `https://mermaid.live/view#pako:${encoded}`;
         window.open(url, '_blank');
