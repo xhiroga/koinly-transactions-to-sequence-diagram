@@ -217,6 +217,41 @@ header h1 {
     margin-bottom: 30px;
 }
 
+.option-group {
+    display: block;
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    background-color: var(--background-color);
+    border-radius: 6px;
+    position: relative;
+}
+
+.option-group label {
+    display: inline-block;
+    margin-right: 10px;
+    font-weight: 500;
+}
+
+.option-group select {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: white;
+    font-size: 1rem;
+    min-width: 120px;
+}
+
+.option-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
+}
+
+.option-group select:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
 .option-checkbox {
     display: block;
     margin-bottom: 10px;
@@ -233,6 +268,10 @@ header h1 {
 
 .option-checkbox input {
     margin-right: 8px;
+}
+
+.option-checkbox input:disabled {
+    cursor: not-allowed;
 }
 
 /* ツールチップのスタイル */

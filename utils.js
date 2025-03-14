@@ -191,28 +191,65 @@ function isReverseTransaction(row1, row2) {
 }
 
 /**
- * 年内の同じ通貨ペア・取引所間の取引を集約する関数
+ * 指定した期間内の同じ通貨ペア・取引所間の取引を集約する関数
+ *
+ * @param {Array} transactions 取引データの配列
+ * @param {string} period 集約する期間（'day', 'month', 'year'のいずれか）
+ * @returns {Array} 集約された取引データの配列
  */
-function aggregateTransactions(transactions) {
-    // 年ごとにグループ化
-    const yearGroups = {};
-    transactions.forEach(row => {
-        const year = row["Years (Date (UTC))"];
-        if (!yearGroups[year]) {
-            yearGroups[year] = [];
+function aggregateTransactions(transactions, period = 'year') {
+    // 日付文字列から期間キーを生成する関数
+    function getPeriodKey(dateStr, periodType) {
+        const date = new Date(dateStr);
+
+        switch (periodType) {
+            case 'day':
+                // 日単位: YYYY-MM-DD
+                return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+            case 'month':
+                // 月単位: YYYY-MM
+                return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+            case 'year':
+            default:
+                // 年単位: YYYY
+                return date.getFullYear().toString();
         }
-        yearGroups[year].push({ ...row });
+    }
+
+    // 期間ごとにグループ化
+    const periodGroups = {};
+    transactions.forEach(row => {
+        // 日付情報の取得
+        let dateStr;
+        if (row["Date (UTC)"]) {
+            // 実際の日付がある場合はそれを使用
+            dateStr = row["Date (UTC)"];
+        } else if (row["Years (Date (UTC))"]) {
+            // 年のみの情報がある場合は、その年の1月1日を使用
+            const year = parseInt(row["Years (Date (UTC))"]);
+            dateStr = `${year}-01-01`;
+        } else {
+            // どちらもない場合は現在の日付を使用
+            dateStr = new Date().toISOString().split('T')[0];
+        }
+
+        const periodKey = getPeriodKey(dateStr, period);
+
+        if (!periodGroups[periodKey]) {
+            periodGroups[periodKey] = [];
+        }
+        periodGroups[periodKey].push({ ...row });
     });
 
     const resultRows = [];
 
-    // 各年内で同じ通貨ペア・取引所間の取引を集約
-    Object.keys(yearGroups).forEach(year => {
-        const yearGroup = yearGroups[year];
+    // 各期間内で同じ通貨ペア・取引所間の取引を集約
+    Object.keys(periodGroups).forEach(periodKey => {
+        const periodGroup = periodGroups[periodKey];
         const transactionGroups = {};
 
         // 各取引をキーでグループ化
-        yearGroup.forEach(row => {
+        periodGroup.forEach(row => {
             // キーの生成: from通貨+取引所_to通貨+取引所
             const fromKey = `${row["From Currency"]}_${row["From Wallet (read-only)"]}`;
             const toKey = `${row["To Currency"]}_${row["To Wallet (read-only)"]}`;
@@ -528,19 +565,20 @@ function formatYearlyCurrencyTotalNote(firstParticipant, currencyTotals, year) {
  * @param {Array} transactions 取引データの配列
  * @param {Object} options オプション設定
  * @param {boolean} options.offset 逆取引を相殺するか（デフォルト: true）
- * @param {boolean} options.aggregate 同じ通貨ペア間の取引を集約するか（デフォルト: true）
+ * @param {string} options.aggregatePeriod 取引をまとめる期間（'none', 'day', 'month', 'year'のいずれか、デフォルト: 'year'）
  * @returns {string} Mermaid形式のシーケンス図
  */
 function generateSequenceDiagram(transactions, options = {}) {
     // デフォルトオプション
     const defaultOptions = {
-        offset: true,       // 逆取引を相殺する
-        aggregate: true,    // 同じ通貨ペア間の取引を集約する
+        offset: true,             // 逆取引を相殺する
+        aggregatePeriod: 'year',  // 取引をまとめる期間
     };
 
     // オプションをマージ
     const mergedOptions = { ...defaultOptions, ...options };
 
+    // 後方互換性のため、booleanが渡された場合はoffsetオプションとして扱う
     if (arguments.length > 1 && typeof arguments[1] === 'boolean') {
         mergedOptions.offset = arguments[1];
     }
@@ -548,9 +586,9 @@ function generateSequenceDiagram(transactions, options = {}) {
     // 前処理
     let processedTransactions = [...transactions];
 
-    // 取引の集約（オプションが有効な場合）
-    if (mergedOptions.aggregate) {
-        processedTransactions = aggregateTransactions(processedTransactions);
+    // 取引の集約（期間が'none'でない場合）
+    if (mergedOptions.aggregatePeriod !== 'none') {
+        processedTransactions = aggregateTransactions(processedTransactions, mergedOptions.aggregatePeriod);
     }
 
     // 逆取引の相殺（オプションが有効な場合）

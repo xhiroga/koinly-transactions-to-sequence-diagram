@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const openMermaidLiveBtn = document.getElementById('open-mermaid-live');
     const diagramPreview = document.getElementById('diagram-preview');
     const offsetOption = document.getElementById('offset-option');
-    const aggregateOption = document.getElementById('aggregate-option');
+    const aggregatePeriod = document.getElementById('aggregate-period');
 
     // グローバル変数
     let csvData = null;
@@ -247,10 +247,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // UIのオプション設定を読み取る
+        const selectedPeriod = aggregatePeriod.value;
         const options = {
-            offset: offsetOption.checked,      // 逆取引の相殺を行う
-            aggregate: aggregateOption.checked, // 同じ通貨ペア間の取引をまとめる
+            offset: selectedPeriod !== 'none' && offsetOption.checked, // まとめない場合は相殺も無効
+            aggregatePeriod: selectedPeriod, // 取引をまとめる期間（none, day, month, year）
         };
+
+        // まとめない場合は相殺オプションを無効化
+        if (selectedPeriod === 'none') {
+            offsetOption.checked = false;
+            offsetOption.disabled = true;
+        } else {
+            offsetOption.disabled = false;
+        }
 
         // utils.jsの関数を使用してシーケンス図を生成
         const mermaidCode = window.utils.generateSequenceDiagram(
@@ -320,6 +329,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Base64エンコード
         return btoa(String.fromCharCode.apply(null, compressed));
     }
+
+    // aggregatePeriodの変更イベントリスナー
+    aggregatePeriod.addEventListener('change', function () {
+        // まとめない場合は相殺オプションを無効化
+        if (this.value === 'none') {
+            offsetOption.checked = false;
+            offsetOption.disabled = true;
+        } else {
+            offsetOption.disabled = false;
+        }
+    });
 
     // イベントリスナーの設定
     generateDiagramBtn.addEventListener('click', generateSequenceDiagram);
