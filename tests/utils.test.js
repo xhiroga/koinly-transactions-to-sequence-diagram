@@ -127,6 +127,8 @@ describe('基本ユーティリティ関数のテスト', () => {
         expect(getCurrency('BTC;1')).toBe('BTC');
         expect(getCurrency('JPY;13')).toBe('JPY');
         expect(getCurrency('ETH;3')).toBe('ETH');
+        expect(getCurrency('BTC-USD;1')).toBe('BTC_USD');
+        expect(getCurrency('USDT-ETH;1')).toBe('USDT_ETH');
     });
 
     // formatAmount関数のテスト
@@ -169,7 +171,7 @@ describe('データ処理関数のテスト', () => {
             'Sum of To Amount': 0
         };
 
-        expect(processRow(row)).toBe('Kraken (BTC)->>UnknownWallet (BTC): 0.3BTCをWithdraw');
+        expect(processRow(row)).toBe('Kraken (BTC)->>UnknownWallet (BTC): 0.3BTC Withdraw');
     });
 
     test('processRow - 入金操作の場合、正しいシーケンス行を生成する', () => {
@@ -182,7 +184,7 @@ describe('データ処理関数のテスト', () => {
             'Sum of To Amount': 1.5
         };
 
-        expect(processRow(row)).toBe('UnknownWallet (ETH)->>Binance (ETH): 1.5ETHをDeposit');
+        expect(processRow(row)).toBe('UnknownWallet (ETH)->>Binance (ETH): 1.5ETH Deposit');
     });
 
     // extractParticipants関数のテスト

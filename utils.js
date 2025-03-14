@@ -257,7 +257,7 @@ function getExchange(wallet) {
  * 通貨フィールドから通貨コードを抽出する関数
  */
 function getCurrency(currencyField) {
-    return currencyField.split(';')[0].trim();
+    return currencyField.split(';')[0].trim().replace(/-/g, '_');
 }
 
 /**
