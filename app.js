@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backToStep1Btn = document.getElementById('back-to-step1');
     const backToStep2Btn = document.getElementById('back-to-step2');
     const downloadDiagramBtn = document.getElementById('download-diagram');
+    const copyDiagramCodeBtn = document.getElementById('copy-diagram-code');
     const openMermaidLiveBtn = document.getElementById('open-mermaid-live');
     const diagramPreview = document.getElementById('diagram-preview');
     const offsetOption = document.getElementById('offset-option');
@@ -401,6 +402,31 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open(url, '_blank');
     }
 
+    // Mermaidコードをクリップボードにコピー
+    function copyDiagramCode() {
+        if (!generatedDiagram) {
+            alert(window.utils.translate('No sequence diagram has been generated.'));
+            return;
+        }
+
+        // クリップボードにコピー
+        navigator.clipboard.writeText(generatedDiagram)
+            .then(() => {
+                // コピー成功時のフィードバック
+                const originalText = copyDiagramCodeBtn.textContent;
+                copyDiagramCodeBtn.textContent = window.utils.translate('Code copied to clipboard');
+
+                // 2秒後に元のテキストに戻す
+                setTimeout(() => {
+                    copyDiagramCodeBtn.textContent = originalText;
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('クリップボードへのコピーに失敗しました:', err);
+                alert('クリップボードへのコピーに失敗しました。');
+            });
+    }
+
     // Base64エンコードされたdeflateされた文字列を生成（Mermaid Liveで使用）
     function pako_deflate_base64(str) {
         // テキストをUTF8バイト配列に変換
@@ -522,5 +548,6 @@ document.addEventListener('DOMContentLoaded', () => {
     backToStep1Btn.addEventListener('click', () => goToStep(1));
     backToStep2Btn.addEventListener('click', () => goToStep(2));
     downloadDiagramBtn.addEventListener('click', downloadSVG);
+    copyDiagramCodeBtn.addEventListener('click', copyDiagramCode);
     openMermaidLiveBtn.addEventListener('click', openInMermaidLive);
 });

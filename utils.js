@@ -33,6 +33,8 @@ const translations = {
         "Generated Sequence Diagram": "生成されたシーケンス図",
         "Download SVG": "SVGをダウンロード",
         "Open in Mermaid Live": "Mermaid Liveで開く",
+        "Copy Code": "コードをコピー",
+        "Code copied to clipboard": "コードがクリップボードにコピーされました",
 
         // ボタン
         "Back": "戻る",
@@ -85,6 +87,8 @@ const translations = {
         "Generated Sequence Diagram": "Generated Sequence Diagram",
         "Download SVG": "Download SVG",
         "Open in Mermaid Live": "Open in Mermaid Live",
+        "Copy Code": "Copy Code",
+        "Code copied to clipboard": "Code copied to clipboard",
 
         // Buttons
         "Back": "Back",
@@ -219,6 +223,7 @@ function updatePageLanguage() {
     updateElementText('#back-to-step2', 'Back');
     updateElementText('#generate-diagram', 'Generate Sequence Diagram');
     updateElementText('#download-diagram', 'Download SVG');
+    updateElementText('#copy-diagram-code', 'Copy Code');
     updateElementText('#open-mermaid-live', 'Open in Mermaid Live');
 }
 
@@ -985,4 +990,7 @@ if (typeof module !== 'undefined' && module.exports) {
     window.utils.formatYearlyBalanceNote = formatYearlyBalanceNote;
     window.utils.groupTransactionsByPeriod = groupTransactionsByPeriod;
     window.utils.generateSequenceDiagram = generateSequenceDiagram;
+    window.utils.translate = translate;
+    window.utils.setLanguage = setLanguage;
+    window.utils.getCurrentLanguage = getCurrentLanguage;
 }
