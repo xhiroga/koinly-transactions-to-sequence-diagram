@@ -242,11 +242,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 通貨フィルターの生成
     function generateCurrencyFilter() {
-        // 通貨の一覧を取得
+        // from側とto側の両方から通貨の一覧を取得
         const currencies = new Set();
         parsedTransactions.forEach(transaction => {
-            if (transaction.currency) {
-                currencies.add(transaction.currency);
+            if (transaction.fromCurrency) {
+                currencies.add(transaction.fromCurrency);
+            }
+            if (transaction.toCurrency) {
+                currencies.add(transaction.toCurrency);
             }
         });
 
@@ -284,8 +287,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const input = document.createElement('input');
             input.type = 'checkbox';
             input.value = currency;
-            input.checked = true;
-            selectedCurrencies.add(currency);
+            // 番号が1000以上の場合はデフォルトでオフ
+            const isChecked = currencyObj.number < 1000;
+            input.checked = isChecked;
+            if (isChecked) {
+                selectedCurrencies.add(currency);
+            }
 
             input.addEventListener('change', function () {
                 if (this.checked) {
@@ -303,10 +310,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // シーケンス図の生成
     function generateSequenceDiagram() {
-        // 選択された通貨でトランザクションをフィルタリング
-        const filteredTransactions = parsedTransactions.filter(transaction =>
-            selectedCurrencies.has(transaction.currency)
-        );
+        // 選択された通貨でトランザクションをフィルタリング（from側とto側の両方をチェック）
+        const filteredTransactions = parsedTransactions.filter(transaction => {
+            const fromCurrencySelected = !transaction.fromCurrency || selectedCurrencies.has(transaction.fromCurrency);
+            const toCurrencySelected = !transaction.toCurrency || selectedCurrencies.has(transaction.toCurrency);
+            return fromCurrencySelected && toCurrencySelected;
+        });
 
         if (filteredTransactions.length === 0) {
             alert(window.utils.translate('No transactions found for selected currencies.'));
